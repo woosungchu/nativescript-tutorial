@@ -7,9 +7,30 @@ function User(info) {
 
     // You can add properties to observables on creation
     var viewModel = new observableModule.fromObject({
-        email: info.email || "",
-        password: info.password || ""
+        email: info.email || "username@domain.com",//"",
+        password: info.password || "password"//"",
     });
+
+    viewModel.login = function() {
+        return fetchModule.fetch(config.apiUrl + "oauth/token", {
+            method: "POST",
+            body: JSON.stringify({
+                username: viewModel.get("email"),
+                password: viewModel.get("password"),
+                grant_type: "password"
+            }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(handleErrors) //  any errors
+        .then(function(response) { // convert the returned data into JSON by calling the Response object's json() method.
+            return response.json();
+        })
+        .then(function(data) {
+            config.token = data.Result.access_token; // save a reference to the user's authentication token in the config module
+        });
+    };
 
     viewModel.register = function() {
         return fetchModule.fetch(config.apiUrl + "Users", {
